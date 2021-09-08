@@ -3,10 +3,13 @@ using UnityEngine;
 using UnityEngine.UI;
 using ZombieFight.Interfaces.Core;
 
+[RequireComponent(typeof(AudioSource))]
 public class LevelPannel : MonoBehaviour, IlevelPannel
 {
     #region Fields
     [SerializeField] Color textColor;
+    [SerializeField] BackgroundSoundsSO backgroundSoundsSO;
+    AudioSource backgroundSounds;
     Text levelText;
     Image image;
     Color imageColor;
@@ -28,6 +31,7 @@ public class LevelPannel : MonoBehaviour, IlevelPannel
         isActive = true;
         Core = GameObject.Find("GameManager").GetComponent<ZombieFightClass>();
         levelText = GetComponentInChildren<Text>();
+        backgroundSounds = GetComponent<AudioSource>();
         levelText.color = textColor;
         image = GetComponent<Image>();
         imageColor = image.color;
@@ -45,6 +49,7 @@ public class LevelPannel : MonoBehaviour, IlevelPannel
     {
         levelText.text = "level " + Core.LevelNumber.ToString();
         image.color = imageColor;
+        backgroundSounds.PlayOneShot(backgroundSoundsSO.ChangeLevelMusic);
         StartCoroutine(FadeInRoutine());
     }
 
@@ -102,6 +107,7 @@ public class LevelPannel : MonoBehaviour, IlevelPannel
     {
         float transparencyStep = 0.15f;
         ChangeLevel();
+        backgroundSounds.Stop();
         while (imageTransparency > 0)
         {
             imageTransparency -= transparencyStep;
@@ -109,7 +115,7 @@ public class LevelPannel : MonoBehaviour, IlevelPannel
             image.color = imageColor;
             yield return new WaitForSecondsRealtime(waitTime);
         }
-        isActive = false;
+       isActive = false;
     }
     #endregion
 }

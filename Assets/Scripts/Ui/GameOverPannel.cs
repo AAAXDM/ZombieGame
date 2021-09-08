@@ -3,6 +3,8 @@ using UnityEngine.UI;
 using System.Collections;
 using ZombieFight.Interfaces.Core;
 using UnityEngine.SceneManagement;
+
+[RequireComponent(typeof(AudioSource))]
 public class GameOverPannel : MonoBehaviour,IGameOverPannel
 {
     #region Fields
@@ -10,6 +12,8 @@ public class GameOverPannel : MonoBehaviour,IGameOverPannel
     Text imageText;
     [SerializeField] Color imageColor;
     [SerializeField] Color textColor;
+    [SerializeField] BackgroundSoundsSO backgroundSoundsSO;
+    AudioSource backgroundSounds;
     float transparencyStep = 0.05f;
     float imageTransparency;
     int maxTransperency = 1;
@@ -26,6 +30,7 @@ public class GameOverPannel : MonoBehaviour,IGameOverPannel
         imageTransparency = 0;
         image.color = imageColor;
         imageText = GetComponentInChildren<Text>();
+        backgroundSounds = GetComponent<AudioSource>();
         imageText.color = textColor;
     }
 
@@ -38,6 +43,7 @@ public class GameOverPannel : MonoBehaviour,IGameOverPannel
     IEnumerator FadeINRoutine()
     {
         float stepTime = 0.05f;
+        backgroundSounds.PlayOneShot(backgroundSoundsSO.EndGame);
         while (imageTransparency < maxTransperency)
         {
             imageTransparency += transparencyStep;

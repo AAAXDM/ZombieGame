@@ -6,20 +6,23 @@ using UnityEngine;
 using UnityEngine.UI;
 using Download;
 using UnityEngine.SceneManagement;
+using System.Threading.Tasks;
 
-
+[RequireComponent(typeof(AudioSource))]
 public class ZombieFightClass : MonoBehaviour, IZombieFightClass
 {
     #region Fields
     [SerializeField] GameObject playerPrefab;
     [SerializeField] ZombieSO zombieSO;
     [SerializeField] BoxSO boxS0;
+    [SerializeField] BackgroundSoundsSO backgroundSoundsSO;
     List<GameObject> enemies = new List<GameObject>();
     Bounds[,] boxSpawnBounds;
     GameObject gameOverPannel;
     GameObject pausePannel;
     GameObject player;
     GameObject boxObject;
+    AudioSource backgroundSounds;
     Text[] playerStats = new Text[(int)UIStats.count];
     FrostEffect cameraEffect;
     SaveSystem saveSystem;
@@ -30,7 +33,7 @@ public class ZombieFightClass : MonoBehaviour, IZombieFightClass
     Vector3 direction;
     Vector3 playerPos;
     int highScore;
-    int enemiesCount = 2;
+    int enemiesCount;
     int levelNumber = 0;
     int numberOfInstantiate = 0;
     int division = 8;
@@ -46,6 +49,7 @@ public class ZombieFightClass : MonoBehaviour, IZombieFightClass
     IlevelPannel LevelPannel;
     public int LevelNumber => levelNumber;
     public IGameOverPannel GameOver => GameOverPannel;
+    public event VoidDelegate StopLevel;
     #endregion
 
     public enum UIStats {health, armor, score, count}
@@ -63,6 +67,8 @@ public class ZombieFightClass : MonoBehaviour, IZombieFightClass
         SubscribeToEvents();
         saveSystem = new SaveSystem();
         saveData = new SaveData();
+        saveData = saveSystem.Load();
+        enemiesCount = zombieSO.GetStartEnemiesCount();
     }
     private void Start() => ChangeLevel(); 
 
@@ -107,7 +113,6 @@ public class ZombieFightClass : MonoBehaviour, IZombieFightClass
         Time.timeScale = 0;
         isPaused = true;
         pausePannel.SetActive(true);
-        saveSystem.Save(saveData);
     }
 
     public void ExitGame()
@@ -123,6 +128,7 @@ public class ZombieFightClass : MonoBehaviour, IZombieFightClass
         ScreenBounds = Camera.main.gameObject.GetComponentInChildren<ScreenBounds>();
         cameraEffect = Camera.main.gameObject.GetComponent<FrostEffect>();
         LevelPannel = GameObject.Find("Level").GetComponent<LevelPannel>();
+        backgroundSounds = GetComponent<AudioSource>();
         pausePannel = GameObject.Find("Pause");
     }
 
@@ -144,6 +150,7 @@ public class ZombieFightClass : MonoBehaviour, IZombieFightClass
 
     private void ChangeLevel()
     {
+        if(levelNumber > 1) StopLevel();
         StartCoroutine(ChangeLevelRoutine());
     }
 
@@ -161,9 +168,12 @@ public class ZombieFightClass : MonoBehaviour, IZombieFightClass
 
     private void PlayHitEffect()
     {
-        float startValue = 0;
-        float endValue = 0.2f;
-        cameraEffect.ChangeFrostAmount(startValue, endValue);
+        if (!cameraEffect.IsActive)
+        {
+            float startValue = 0;
+            float endValue = 0.2f;
+            cameraEffect.ChangeFrostAmount(startValue, endValue);
+        }
     }
     private void PlusAmount() => enemyAmounts[0]++;
    
@@ -263,8 +273,13 @@ public class ZombieFightClass : MonoBehaviour, IZombieFightClass
     {
         float startRespawnTime = 2;
         enemyTypeInLevel = new int[enemiesCount];
-        if (levelNumber == 1) player = Instantiate(playerPrefab, playerPos, Quaternion.identity);
-        PlayerControllerInt = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerController>();
+        if (levelNumber == 1)
+        {
+            player = Instantiate(playerPrefab, playerPos, Quaternion.identity);
+            PlayerControllerInt = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerController>();
+        }
+        backgroundSounds.PlayOneShot(backgroundSoundsSO.Rain);
+        backgroundSounds.PlayOneShot(backgroundSoundsSO.BackgroundMusic);
         enemyTypeInLevel = zombieSO.GetEnemiesType(enemyAmounts, enemiesCount);
         yield return new WaitForSecondsRealtime(startRespawnTime);
         InstantiateHealthBox();
@@ -285,14 +300,33 @@ public class ZombieFightClass : MonoBehaviour, IZombieFightClass
             GameObject enemyObj = Instantiate(enemy.Zombie, direction, Quaternion.identity);
             enemyObj.GetComponent<Zombie>().SetEnemyStats(enemy);
             enemies.Add(enemyObj);
-            yield return new WaitForSecondsRealtime(respawnTime);
+            if(!isPaused) yield return new WaitForSecondsRealtime(respawnTime);
+            else
+            {
+                //Invoke(this,);
+            }
         }
+    }
+    private float WaitPauseEnded()
+    {
+        float waitTime = 0;
+        while (isPaused)
+        {
+            waitTime += 0.01f;
+        }
+        return waitTime;
     }
     private IEnumerator ChangeLevelRoutine()
     {
         float await = 2;
-        saveData.hiScore = highScore;
-        saveData.maxLevel = levelNumber;
+        if (highScore > saveData.hiScore)
+        {
+            saveData.hiScore = highScore;
+        }
+        if (levelNumber > saveData.maxLevel)
+        {
+            saveData.maxLevel = levelNumber;
+        }
         yield return new  WaitForSecondsRealtime(await);
         StopInstantiateBox();
         int plusEnemies = 2;
@@ -308,6 +342,7 @@ public class ZombieFightClass : MonoBehaviour, IZombieFightClass
             PlusAmount();
         }
         LevelPannel.ShowLevelPanel();
+        backgroundSounds.Stop();
     }
     public void IncreaseScore(int value)
     {

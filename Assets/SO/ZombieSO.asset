@@ -16,18 +16,18 @@ MonoBehaviour:
   - enemy: {fileID: 8982622005253821441, guid: 908d28352ed82ac42b3eb5e99c01705c, type: 3}
     health: 8
     instantiateLevel: 1
-    amount: 2
+    amount: 4
     speed: 2
     damage: 5
   - enemy: {fileID: 2722472030291054981, guid: f417eb1e3c812eb44ae4fe0bd01bda32, type: 3}
     health: 13
-    instantiateLevel: 2
+    instantiateLevel: 3
     amount: 0
     speed: 2.5
     damage: 8
   - enemy: {fileID: 4399271085880548840, guid: 898b05349eccd1949b6a2aba45db532d, type: 3}
     health: 20
-    instantiateLevel: 3
+    instantiateLevel: 6
     amount: 0
     speed: 2.5
     damage: 13

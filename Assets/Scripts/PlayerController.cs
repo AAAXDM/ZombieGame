@@ -4,6 +4,7 @@ using ZombieFight.Interfaces.Core;
 
 [RequireComponent(typeof(CharacterController))]
 [RequireComponent(typeof(Animator))]
+[RequireComponent(typeof(AudioSource))]
 public class PlayerController : MonoBehaviour, IPlayerController
 {
     #region Fields
@@ -14,7 +15,8 @@ public class PlayerController : MonoBehaviour, IPlayerController
     PlayerController playercontroller;
     [SerializeField] GameObject bullet;
     [SerializeField] GameObject explosion;
-    GameObject player;
+    [SerializeField] PlayerSoundsSO playerSoundsSO;
+    AudioSource playerSounds;
     Animator anim;
     Vector3 movementDirection;
     Vector3 rotation;
@@ -32,31 +34,26 @@ public class PlayerController : MonoBehaviour, IPlayerController
     float aimingTime = 0.5f;
     float noFIreTime = 0;
     float noFire = 1.5f;
+    bool isDie = false;
     #endregion
 
     #region Properties
     public Transform PlayerTransform => playerTransform;
     public event VoidDelegate Death;
     public event VoidDelegate Hit;
-    public GameObject Player => player;
     IZombieFightClass CoreClass;
     IBounds ScreenBounds;
+    IlevelPannel LevelPannelInt;
     #endregion
 
     #region Core Methods
     void Start()
     {
+        FindObjects();
+        GetComponents();
         playerTransform = gameObject.transform;
-        playercontroller = GetComponent<PlayerController>();
-        controller = GetComponent<CharacterController>();
-        CoreClass = GameObject.Find("GameManager").GetComponent<ZombieFightClass>();
         halfSpeed = speed / 2;
-        ScreenBounds = Camera.main.gameObject.GetComponentInChildren<ScreenBounds>();
-        anim = GetComponent<Animator>();
-        bulletInstatce = GameObject.Find("startFire").transform;
-        shooting = explosion.GetComponent<ParticleSystem>();
-        player = this.gameObject;
-        CoreClass.GameOver.EndGame += PlayerDestroy;
+        SubscribeToEvents();
     }
 
     private void Update()
@@ -86,15 +83,45 @@ public class PlayerController : MonoBehaviour, IPlayerController
         int boxLayer = 11;
         if (coll.layer == boxLayer)
         {
+            playerSounds.PlayOneShot(playerSoundsSO.GetBox);
             BoxObject boxObject = coll.GetComponent<BoxObject>();
             GetBonus(boxObject);
         }
     }
-    private void OnDestroy() => Death -= PlayerDeath;
+    private void OnDestroy() 
+    { 
+        Death -= PlayerDeath;
+        CoreClass.GameOver.EndGame -= PlayerDestroy;
+        CoreClass.StopLevel -= MuteSound;
+        LevelPannelInt.ChangeLevel -= UnMuteSound;
+    }
 
     #endregion
 
     #region Support Methods
+    private void FindObjects()
+    {
+        CoreClass = GameObject.Find("GameManager").GetComponent<ZombieFightClass>();
+        LevelPannelInt = GameObject.Find("Level").GetComponent<LevelPannel>();
+        bulletInstatce = GameObject.Find("startFire").transform;
+    }
+
+    private void GetComponents()
+    {
+        playercontroller = GetComponent<PlayerController>();
+        controller = GetComponent<CharacterController>();
+        playerSounds = GetComponent<AudioSource>();
+        ScreenBounds = Camera.main.gameObject.GetComponentInChildren<ScreenBounds>();
+        anim = GetComponent<Animator>();
+        shooting = explosion.GetComponent<ParticleSystem>();
+    }
+
+    private void SubscribeToEvents()
+    {
+        LevelPannelInt.ChangeLevel += UnMuteSound;
+        CoreClass.GameOver.EndGame += PlayerDestroy;
+        CoreClass.StopLevel += MuteSound;
+    }
     private void MovePlayer()
     {
         movementDirection = Vector3.zero;
@@ -163,14 +190,18 @@ public class PlayerController : MonoBehaviour, IPlayerController
     {
         if (!anim.GetBool("inMotion"))
         {
-            if(!anim.GetBool("isShoot")) anim.SetBool("isShoot", true);
-            Invoke(nameof(InstatiateBullet),aimingTime);
+            if (!anim.GetBool("isShoot")) anim.SetBool("isShoot", true);
+            Invoke(nameof(InstatiateBullet), aimingTime);
         }
-        else InstatiateBullet();
+        else
+        {
+            InstatiateBullet();
+        }
     }
 
     private void InstatiateBullet()
     {
+        playerSounds.PlayOneShot(playerSoundsSO.Shot);
         shooting.Play();
         Instantiate(bullet, bulletInstatce.position, bulletInstatce.rotation);
     }
@@ -207,7 +238,11 @@ public class PlayerController : MonoBehaviour, IPlayerController
         if (armor == 0)
         {
             health -= difference;
-            if (health < 0)
+            if (health > 0)
+            {
+                playerSounds.PlayOneShot(playerSoundsSO.HitReaction);
+            }
+            if (health <= 0)
             {
                 health = 0;
             }
@@ -216,6 +251,11 @@ public class PlayerController : MonoBehaviour, IPlayerController
             {
                 anim.SetTrigger("isDie");
                 playercontroller.enabled = false;
+                if (!isDie)
+                {
+                    playerSounds.PlayOneShot(playerSoundsSO.Death);
+                    isDie = true;
+                }
                 Invoke(nameof(PlayerDeath), playerDeathTime);
             }
         }
@@ -238,6 +278,15 @@ public class PlayerController : MonoBehaviour, IPlayerController
         boxObject.DestroyBox();
     }
 
+    private void MuteSound()
+    {
+        playerSounds.mute = true;
+    }
+
+    private void UnMuteSound()
+    {
+        playerSounds.mute = false;
+    }
     private void PlayerDeath() => Death();
 
     private void PlayerDestroy() => Destroy(gameObject);

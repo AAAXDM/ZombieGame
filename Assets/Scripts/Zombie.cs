@@ -9,6 +9,8 @@ public class Zombie : MonoBehaviour
 {
     #region Fields
     [SerializeField] GameObject blood;
+    [SerializeField] ZombieSoundSO zombieSoundSO;
+    AudioSource zombieSound;
     NavMeshAgent motion;
     Animator zombieAnimation;
     Transform playerPos;
@@ -44,9 +46,7 @@ public class Zombie : MonoBehaviour
         Core = FindObjectOfType<ZombieFightClass>();
         PlayerController = FindObjectOfType<PlayerController>();
         LevelPanel = FindObjectOfType<LevelPannel>();
-        zombieAnimation = GetComponent<Animator>();
-        motion = GetComponent<NavMeshAgent>();
-        ColliderOpener = GetComponentInChildren<ColliderOpener>();
+        GetComponents();
         speed = zombieSpeed;
         motion.speed = speed;
         motion.updateRotation = true;
@@ -103,6 +103,13 @@ public class Zombie : MonoBehaviour
     #endregion
 
     #region Support Methods
+    private void GetComponents()
+    {
+        zombieAnimation = GetComponent<Animator>();
+        motion = GetComponent<NavMeshAgent>();
+        ColliderOpener = GetComponentInChildren<ColliderOpener>();
+        zombieSound = GetComponent<AudioSource>();
+    }
     private void StopZombie()
     {
         StartCoroutine(StopZombieRoutine());
@@ -123,6 +130,7 @@ public class Zombie : MonoBehaviour
         zombieAnimation.SetTrigger("isDamage");
         speed = 0;
         motion.speed = speed;
+        zombieSound.PlayOneShot(zombieSoundSO.HitZombie);
         Invoke(nameof(Go), hitAnimationTime);
         Instantiate(blood, hitPoint, transform.rotation);
     }
@@ -142,6 +150,7 @@ public class Zombie : MonoBehaviour
         speed = 0;
         Core.IncreaseScore(scorePrice);
         Instantiate(blood, hitPoint, transform.rotation);
+        zombieSound.PlayOneShot(zombieSoundSO.DieZombie);
         Invoke(nameof(FallInGround), dieAnimationTime);
     }
 
@@ -215,9 +224,15 @@ public class Zombie : MonoBehaviour
         float attackAnimationTime = 0.7f;
         speed = 0;
         motion.speed = speed;
-        if (!zombieAnimation.GetBool("isAttak")) zombieAnimation.SetBool("isAttak", true);
+        if (!zombieAnimation.GetBool("isAttak"))
+        {
+            zombieAnimation.SetBool("isAttak", true); 
+        }
         yield return new WaitForSeconds(attackAnimationTime);
-        if (!ColliderOpener.IsOpen && !isDie && !IsAttackAnimationEnd()) ColliderOpener.OpenCollider();
+        if (!ColliderOpener.IsOpen && !isDie && !IsAttackAnimationEnd() && !ColliderOpener.IsHit)
+        { 
+            ColliderOpener.OpenCollider(); 
+        }
     }
 
     public void SetEnemyStats(Enemy enemy)

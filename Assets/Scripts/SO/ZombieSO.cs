@@ -52,6 +52,11 @@ public class ZombieSO : ScriptableObject
         }
         return amounts;
     }
+
+    public int GetStartEnemiesCount()
+    {
+        return Enemies[0].Amount;
+    }
 }
 
 [System.Serializable]

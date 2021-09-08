@@ -20,9 +20,7 @@ namespace ZombieFight.Interfaces.Core
 
     public interface IPlayerController 
     {
-        GameObject Player { get; }
         Transform PlayerTransform { get; }
-
         event VoidDelegate Death;
         event VoidDelegate Hit;
     }
@@ -30,8 +28,8 @@ namespace ZombieFight.Interfaces.Core
     public interface IColliderOpener
     {
         bool IsOpen { get; }
+        bool IsHit { get; }
         void OpenCollider();
-
         void CloseCollider();
     }
 
@@ -39,6 +37,7 @@ namespace ZombieFight.Interfaces.Core
     {
         int LevelNumber { get; }
         IGameOverPannel GameOver { get; }
+        event VoidDelegate StopLevel;
         void DecreaseStats(float statChange, ZombieFightClass.UIStats type);
         void IncreaseScore(int value);
         void DeleteEnemyFromList(GameObject enemy);

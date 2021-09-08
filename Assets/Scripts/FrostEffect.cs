@@ -16,9 +16,11 @@ namespace Download
         public Texture2D Frost; //RGBA
         public Texture2D FrostNormals; //normalmap
         public Shader Shader; //ImageBlendEffect.shader
+        private bool isActive = false;
 
         private Material material;
 
+        public bool IsActive => isActive;
         private void Awake()
         {
             material = new Material(Shader);
@@ -44,6 +46,7 @@ namespace Download
 
         public void ChangeFrostAmount(float startValue, float endValue)
         {
+            isActive = true;
             StartCoroutine(IncreaseChangeFrostAmountRoutine(startValue, endValue));
         }
 
@@ -62,13 +65,14 @@ namespace Download
 
         private IEnumerator DecreaseChangeFrostAmountRoutine(float startValue)
         {
-            float iterationTime = 0.1f;
+            float iterationTime = 0.05f;
             float iterationValue = 0.01f;
             while (FrostAmount > startValue)
             {
                 FrostAmount -= iterationValue;
                 yield return new WaitForSeconds(iterationTime);
             }
+            isActive = false;
         }
     }
 }

@@ -17,17 +17,24 @@ public class SaveSystem
 
     public SaveData Load()
     {
-        string json = File.ReadAllText(filePath);
-        SaveData data = new SaveData();
-        try
+        if (File.Exists(filePath))
         {
-            data = JsonUtility.FromJson<SaveData>(json);
+            string json = File.ReadAllText(filePath);
+            SaveData data = new SaveData();
+            try
+            {
+                data = JsonUtility.FromJson<SaveData>(json);
+            }
+            catch
+            {
+                Debug.LogWarning("SaveSystem:Load() – SaveFile was malformed.\n" + json);
+            }
+            return data;
         }
-        catch
+        else
         {
-            Debug.LogWarning("SaveSystem:Load() – SaveFile was malformed.\n" + json);
+            return null;
         }
-        return data;
     }
 }
 

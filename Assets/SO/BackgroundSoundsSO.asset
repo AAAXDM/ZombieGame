@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3cff205c0edbd14f9b850b634a4a2cb, type: 3}
+  m_Name: BackgroundSoundsSO
+  m_EditorClassIdentifier: 
+  rain: {fileID: 8300000, guid: 804d95841669d8449a46af2e145dd5a6, type: 3}
+  backgroundMusic: {fileID: 8300000, guid: eecf7c9a8c7234f88bf462b007a4cf09, type: 3}
+  changeLevelMusic: {fileID: 8300000, guid: 46cee7ba3d0514a49b52cc081ad6ca85, type: 3}
+  endGame: {fileID: 8300000, guid: 08b4ba6cd22a9ab4986a13fff034f354, type: 3}
