@@ -291,31 +291,23 @@ public class ZombieFightClass : MonoBehaviour, IZombieFightClass
 
     private IEnumerator InstantiateZombieRoutine()
     {
-        float respawnTime = 1;
+        float respawnTime = 3;
         while (enemies.Count < enemiesCount)
         {
+            yield return new WaitWhile(() => isPaused);
+
             direction = SpawnBounds.S.ChoseSpawnLocation();
             Enemy enemy = zombieSO.GetEnemy(enemyTypeInLevel[numberOfInstantiate]);
             numberOfInstantiate++;
             GameObject enemyObj = Instantiate(enemy.Zombie, direction, Quaternion.identity);
             enemyObj.GetComponent<Zombie>().SetEnemyStats(enemy);
             enemies.Add(enemyObj);
-            if(!isPaused) yield return new WaitForSecondsRealtime(respawnTime);
-            else
-            {
-                //Invoke(this,);
-            }
+
+            yield return new WaitWhile(() => isPaused);
+            yield return new WaitForSecondsRealtime(respawnTime);
         }
     }
-    private float WaitPauseEnded()
-    {
-        float waitTime = 0;
-        while (isPaused)
-        {
-            waitTime += 0.01f;
-        }
-        return waitTime;
-    }
+
     private IEnumerator ChangeLevelRoutine()
     {
         float await = 2;
