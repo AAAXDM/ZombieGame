@@ -1,10 +1,10 @@
 using UnityEngine;
 using ZombieFight.Interfaces.Core;
 
-namespace ZombieFight
+namespace ZombieFight.ScreenBounds
 {
     [RequireComponent(typeof(BoxCollider))]
-    public class ScreenBounds : MonoBehaviour, IBounds, IScreenBounds
+    public class GameScreenBounds : MonoBehaviour, IBounds, IScreenBounds
     {
         #region Fields
         Camera cam;

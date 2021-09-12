@@ -877,8 +877,8 @@ MonoBehaviour:
   bullet: {fileID: 2892396985979813745, guid: c060bcfd70c39bb44ba619f8996c7225, type: 3}
   explosion: {fileID: 3335777293157959943}
   playerSoundsSO: {fileID: 11400000, guid: 89ddf56579e6f1541b288727d0ec0e98, type: 2}
-  speed: 7
-  rotationSpeed: 2
+  speed: 12
+  rotationSpeed: 6
   health: 100
   maxCharacteristicValue: 100
 --- !u!136 &1112931136513312854
